@@ -4,105 +4,70 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Video to PDF</title>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f7f7f7;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 30px;
-      width: 100%;
-      max-width: 420px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      font-size: 24px;
-    }
-
-    p {
-      color: #555;
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056cc;
-    }
-
-    #status {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #333;
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 20px;
-      }
-    }
+    *{box-sizing:border-box}
+    body{font-family:Arial,Helvetica,sans-serif;min-height:100vh;margin:0;display:flex;align-items:center;justify-content:center;background:#f7f7f7;padding:20px}
+    .card{background:#fff;padding:24px;width:100%;max-width:520px;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.08);text-align:center}
+    input{width:100%;padding:12px;font-size:16px;border-radius:6px;border:1px solid #ccc}
+    button{width:100%;margin-top:12px;padding:12px;font-size:16px;border-radius:6px;border:none;background:#007bff;color:#fff;cursor:pointer}
+    button[disabled]{opacity:.6;cursor:default}
+    #status{margin-top:12px;font-size:14px;color:#333}
   </style>
 </head>
-
 <body>
-
   <div class="card">
     <h1>Video to PDF</h1>
-    <p>Convert YouTube videos into downloadable PDF notes.</p>
+    <p>Paste a YouTube link and get a downloadable PDF of lecture screenshots.</p>
 
-    <input id="url" placeholder="Paste YouTube link here" />
-    <button onclick="convert()">Convert to PDF</button>
-
+    <input id="url" placeholder="https://youtu.be/..." />
+    <button id="go" onclick="convert()">Convert to PDF</button>
     <div id="status"></div>
   </div>
 
   <script>
-    function convert() {
+    // replace with your service URL
+    const CLOUD_RUN = "https://yt2pdf-service-896474231252.us-central1.run.app/convert";
+
+    async function convert(){
+      const btn = document.getElementById("go");
       const url = document.getElementById("url").value.trim();
-      if (!url) {
-        alert("Please paste a YouTube link");
-        return;
+      const status = document.getElementById("status");
+      if(!url){ alert("Paste a YouTube link"); return; }
+
+      btn.disabled = true;
+      status.innerText = "Sending request... (this may take 10–60s)";
+
+      try {
+        const resp = await fetch(CLOUD_RUN, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({url})
+        });
+
+        if(!resp.ok){
+          const j = await resp.json().catch(()=>null);
+          status.innerText = j?.error || ("Server error: " + resp.status);
+          btn.disabled = false;
+          return;
+        }
+
+        // get blob and trigger download
+        const blob = await resp.blob();
+        const filename = resp.headers.get("content-disposition")?.match(/filename="?(.+?)"?$/)?.[1] || "notes.pdf";
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        status.innerText = "Done — PDF downloaded.";
+      } catch (err){
+        status.innerText = "Network or CORS error: " + err.message;
+      } finally {
+        btn.disabled = false;
       }
-      document.getElementById("status").innerText =
-        "Backend not connected yet.";
     }
   </script>
-
 </body>
 </html>
