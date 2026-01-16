@@ -1,11 +1,108 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Video to PDF</title>
-  </head>
-  <body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video to PDF</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f7f7f7;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      width: 100%;
+      max-width: 420px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    p {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0056cc;
+    }
+
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
     <h1>Video to PDF</h1>
-    <p>Convert YouTube videos into PDF notes.</p>
-  </body>
+    <p>Convert YouTube videos into downloadable PDF notes.</p>
+
+    <input id="url" placeholder="Paste YouTube link here" />
+    <button onclick="convert()">Convert to PDF</button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    function convert() {
+      const url = document.getElementById("url").value.trim();
+      if (!url) {
+        alert("Please paste a YouTube link");
+        return;
+      }
+      document.getElementById("status").innerText =
+        "Backend not connected yet.";
+    }
+  </script>
+
+</body>
 </html>
